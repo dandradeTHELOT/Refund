@@ -1,21 +1,52 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>API Response</title>
+    <title>Autenticación con Auth0</title>
+    <link rel="stylesheet" href="styles.css"> <!-- Vincula el archivo CSS -->
+    <script src="https://cdn.auth0.com/js/auth0-spa-js/1.18/auth0-spa-js.production.js"></script>
 </head>
 <body>
-    <h1>Response Message</h1>
-    <p id="apiMessage"></p>
+    <div class="container">
+        <h1>Login</h1>
+        <button id="login">Login</button>
+        <button id="logout" style="display: none;">Logout</button>
+    </div>
 
     <script>
-        // Obtener el mensaje desde los parámetros de la URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const message = urlParams.get('message');
-        
-        // Mostrar el mensaje en el HTML
-        document.getElementById('apiMessage').textContent = message || "No message received.";
+        const { createAuth0Client } = window.auth0;
+        let auth0;
+
+        const initAuth0 = async () => {
+            auth0 = await createAuth0Client({
+                domain: 'dev-5ui8ektjyvwrh07p.us.auth0.com', // Reemplaza con tu dominio
+                client_id: '1dNfZ5fI8nTl2uepdSJJWMS8wzWndpwR', // Reemplaza con tu Client ID
+                redirect_uri: window.location.origin,
+            });
+
+            // Verificar si el usuario está autenticado
+            const isAuthenticated = await auth0.isAuthenticated();
+            if (isAuthenticated) {
+                document.getElementById('login').style.display = 'none';
+                document.getElementById('logout').style.display = 'block';
+            } else {
+                document.getElementById('login').style.display = 'block';
+                document.getElementById('logout').style.display = 'none';
+            }
+        };
+
+        initAuth0();
+
+        document.getElementById('login').addEventListener('click', async () => {
+            await auth0.loginWithRedirect();
+        });
+
+        document.getElementById('logout').addEventListener('click', async () => {
+            await auth0.logout({
+                returnTo: window.location.origin,
+            });
+        });
     </script>
 </body>
 </html>
