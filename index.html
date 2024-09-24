@@ -9,9 +9,10 @@
 </head>
 <body>
     <div class="container">
-        <h1>Login</h1>
-        <button id="login">Login</button>
-        <button id="logout" style="display: none;">Logout</button>
+        <h1>Iniciar Sesión</h1>
+        <button id="login">Iniciar Sesión</button>
+        <button id="logout" style="display: none;">Cerrar Sesión</button>
+        <div id="user-info" style="margin-top: 20px;"></div>
     </div>
 
     <script>
@@ -30,13 +31,45 @@
             if (isAuthenticated) {
                 document.getElementById('login').style.display = 'none';
                 document.getElementById('logout').style.display = 'block';
+
+                // Obtener información del usuario
+                const user = await auth0.getUser();
+                if (user) {
+                    document.getElementById('user-info').innerHTML = `
+                        <h2>Bienvenido, ${user.name}</h2>
+                        <p>Email: ${user.email}</p>
+                    `;
+                }
             } else {
                 document.getElementById('login').style.display = 'block';
                 document.getElementById('logout').style.display = 'none';
             }
         };
 
+        // Manejar la redirección después del inicio de sesión
+        const handleRedirect = async () => {
+            const query = window.location.search;
+            if (query.includes('code=') && query.includes('state=')) {
+                // Procesa la redirección
+                const result = await auth0.handleRedirectCallback();
+                console.log('Usuario autenticado:', result);
+                window.history.replaceState({}, document.title, '/'); // Limpia la URL
+                document.getElementById('login').style.display = 'none';
+                document.getElementById('logout').style.display = 'block';
+
+                // Obtener información del usuario
+                const user = await auth0.getUser();
+                if (user) {
+                    document.getElementById('user-info').innerHTML = `
+                        <h2>Bienvenido, ${user.name}</h2>
+                        <p>Email: ${user.email}</p>
+                    `;
+                }
+            }
+        };
+
         initAuth0();
+        handleRedirect();
 
         document.getElementById('login').addEventListener('click', async () => {
             await auth0.loginWithRedirect();
