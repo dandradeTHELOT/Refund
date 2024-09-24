@@ -1,7 +1,7 @@
 body {
     font-family: Arial, sans-serif;
-    background-color: #f0f0f0;
-    color: #333;
+    background-color: #003A7E; /* Cambiado el fondo a #003A7E */
+    color: white; /* Cambiado el color de la letra a blanco */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -11,7 +11,7 @@ body {
 
 .container {
     text-align: center;
-    background: white;
+    background: rgba(255, 255, 255, 0.9); /* Fondo blanco con opacidad para resaltar el contenido */
     border-radius: 10px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     padding: 20px;
@@ -41,3 +41,9 @@ button:disabled {
     background-color: #ccc;
     cursor: not-allowed;
 }
+
+/* Estilo para el logo */
+.logo {
+    margin-bottom: 20px;
+}
+
