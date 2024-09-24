@@ -16,13 +16,31 @@
     </div>
 
     <script>
-        // Espera a que el contenido del documento esté completamente cargado
-        document.addEventListener('DOMContentLoaded', async () => {
-            const { createAuth0Client } = window.auth0; // Asegúrate de que auth0 esté disponible
-            let auth0;
+        // Asegúrate de que el script de Auth0 se cargue correctamente
+        const checkAuth0Loaded = () => {
+            return new Promise((resolve, reject) => {
+                const interval = setInterval(() => {
+                    if (window.auth0) {
+                        clearInterval(interval);
+                        resolve(window.auth0);
+                    }
+                }, 100); // Comprobar cada 100 ms
 
-            const initAuth0 = async () => {
-                auth0 = await createAuth0Client({
+                // Limitar el tiempo de espera
+                setTimeout(() => {
+                    clearInterval(interval);
+                    reject(new Error("Auth0 no se ha cargado."));
+                }, 5000); // Espera hasta 5 segundos
+            });
+        };
+
+        // Función principal
+        const initAuth0 = async () => {
+            try {
+                const auth0Lib = await checkAuth0Loaded();
+                const { createAuth0Client } = auth0Lib; // Destructurar createAuth0Client
+
+                const auth0 = await createAuth0Client({
                     domain: 'dev-5ui8ektjyvwrh07p.us.auth0.com', // Reemplaza con tu dominio
                     client_id: '1dNfZ5fI8nTl2uepdSJJWMS8wzWndpwR', // Reemplaza con tu Client ID
                     redirect_uri: window.location.origin,
@@ -46,43 +64,47 @@
                     document.getElementById('login').style.display = 'block';
                     document.getElementById('logout').style.display = 'none';
                 }
-            };
 
-            // Manejar la redirección después del inicio de sesión
-            const handleRedirect = async () => {
-                const query = window.location.search;
-                if (query.includes('code=') && query.includes('state=')) {
-                    // Procesa la redirección
-                    const result = await auth0.handleRedirectCallback();
-                    console.log('Usuario autenticado:', result);
-                    window.history.replaceState({}, document.title, '/'); // Limpia la URL
-                    document.getElementById('login').style.display = 'none';
-                    document.getElementById('logout').style.display = 'block';
+                // Manejar la redirección después del inicio de sesión
+                const handleRedirect = async () => {
+                    const query = window.location.search;
+                    if (query.includes('code=') && query.includes('state=')) {
+                        // Procesa la redirección
+                        const result = await auth0.handleRedirectCallback();
+                        console.log('Usuario autenticado:', result);
+                        window.history.replaceState({}, document.title, '/'); // Limpia la URL
+                        document.getElementById('login').style.display = 'none';
+                        document.getElementById('logout').style.display = 'block';
 
-                    // Obtener información del usuario
-                    const user = await auth0.getUser();
-                    if (user) {
-                        document.getElementById('user-info').innerHTML = `
-                            <h2>Bienvenido, ${user.name}</h2>
-                            <p>Email: ${user.email}</p>
-                        `;
+                        // Obtener información del usuario
+                        const user = await auth0.getUser();
+                        if (user) {
+                            document.getElementById('user-info').innerHTML = `
+                                <h2>Bienvenido, ${user.name}</h2>
+                                <p>Email: ${user.email}</p>
+                            `;
+                        }
                     }
-                }
-            };
+                };
 
-            await initAuth0();
-            await handleRedirect();
+                await handleRedirect();
 
-            document.getElementById('login').addEventListener('click', async () => {
-                await auth0.loginWithRedirect();
-            });
-
-            document.getElementById('logout').addEventListener('click', async () => {
-                await auth0.logout({
-                    returnTo: window.location.origin,
+                document.getElementById('login').addEventListener('click', async () => {
+                    await auth0.loginWithRedirect();
                 });
-            });
-        });
+
+                document.getElementById('logout').addEventListener('click', async () => {
+                    await auth0.logout({
+                        returnTo: window.location.origin,
+                    });
+                });
+
+            } catch (error) {
+                console.error("Error al cargar Auth0:", error);
+            }
+        };
+
+        initAuth0();
     </script>
 </body>
 </html>
